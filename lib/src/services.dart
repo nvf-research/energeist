@@ -62,7 +62,16 @@ class EnergyStarService {
       }
     }
 
-    return allResults;
+    // Remove duplicates if same brand + model + energy consumption
+    final seen = <String>{};
+    final deduped = <EnergyStarNormalizedData>[];
+    for (final item in allResults) {
+      final key =
+          '${item.brandName?.toUpperCase()}_${item.modelNumber?.toUpperCase()}_${item.annualEnergyUseKwhPerYear}';
+      if (seen.add(key)) deduped.add(item);
+    }
+
+    return deduped;
   }
 
   /// Fetches data from a single Energy Star dataset ID.
