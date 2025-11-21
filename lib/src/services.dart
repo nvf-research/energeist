@@ -41,8 +41,18 @@ class EnergyStarService {
         ...?additionalFilters,
       };
 
-      if (brandName != null) queryParams['brand_name'] = brandName;
-      if (modelNumber != null) queryParams['model_number'] = modelNumber;
+      // Build case-insensitive $where clause for brand and model
+      final whereClauses = <String>[];
+      if (brandName != null)
+        whereClauses
+            .add("upper(brand_name)='${brandName.trim().toUpperCase()}'");
+
+      if (modelNumber != null)
+        whereClauses
+            .add("upper(model_number)='${modelNumber.trim().toUpperCase()}'");
+
+      if (whereClauses.isNotEmpty)
+        queryParams['\$where'] = whereClauses.join(' AND ');
 
       try {
         final results = await _fetchDataFromDatasetId(datasetId, queryParams);
