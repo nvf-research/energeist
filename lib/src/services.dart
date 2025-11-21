@@ -1,7 +1,5 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-
+import 'package:http/http.dart' as http;
 import 'enums.dart';
 import 'models.dart';
 
@@ -10,8 +8,6 @@ import 'models.dart';
 /// Provides methods to fetch appliance data from the Energy Star API.
 class EnergyStarService {
   static const String baseUrl = 'https://data.energystar.gov/resource';
-
-  final HttpClient _httpClient = HttpClient();
 
   /// Creates an [EnergyStarService] instance.
   EnergyStarService();
@@ -93,20 +89,19 @@ class EnergyStarService {
         '$baseUrl/$datasetId.json',
       ).replace(queryParameters: queryParams);
 
-      final request = await _httpClient.getUrl(uri);
-      request.headers.set('Content-Type', 'application/json');
-      final response = await request.close();
+      final response = await http.get(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+      );
 
       if (response.statusCode == 200) {
-        final responseBody = await response.transform(utf8.decoder).join();
-        final List<dynamic> jsonData = json.decode(responseBody);
+        final List<dynamic> jsonData = json.decode(response.body);
         return jsonData
             .map((json) => EnergyStarNormalizedData.fromJson(json, datasetId))
             .toList();
       } else {
-        final responseBody = await response.transform(utf8.decoder).join();
         throw Exception(
-          'Failed to fetch EnergyStar data: ${response.statusCode} - $responseBody',
+          'Failed to fetch EnergyStar data: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {
