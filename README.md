@@ -4,7 +4,8 @@ A Dart subsystem for energy consumption estimation and tracking of household app
 ## Features
 - Query EnergyStar API for appliance energy consumption data
 - Support multiple appliance types
-- Estimate median energy usage from minimal inputs (appliance type, brand name, model number)
+- Estimate energy usage from minimal inputs (appliance type, brand name, model number)
+- Choose between median or mean aggregation strategies
 - Normalized data model that standardizes various EnergyStar dataset formats
 - Handles multiple dataset IDs per appliance type
 
@@ -25,7 +26,7 @@ dart pub get
 
 ## Usage
 ### Basic Energy Estimation
-The simplest way to use Energeist is with the `Estimator` class to get median energy usage for an appliance:
+The simplest way to use Energeist is with the `Estimator` class to get energy usage for an appliance:
 
 ```dart
 import 'package:energeist/energeist.dart';
@@ -33,7 +34,7 @@ import 'package:energeist/energeist.dart';
 void main() async {
   final estimator = Estimator();
 
-  // Use Case 1: Estimate for all refrigerators
+  // Use Case 1: Estimate for all refrigerators (defaults to median)
   final estimatesForRefrigerators = await estimator.estimate(
     type: ApplianceInfo.refrigerator,
   );
@@ -49,6 +50,14 @@ void main() async {
     type: ApplianceInfo.refrigerator,
     brandName: 'Lynx',
     modelNumber: 'LN24REFC*',
+  );
+
+  // Use Case 4: Use mean instead of median
+  final meanEstimate = await estimator.estimate(
+    type: ApplianceInfo.refrigerator,
+    brandName: 'Lynx',
+    modelNumber: 'LN24REFC*',
+    strategy: Strategy.mean,
   );
 }
 ```
@@ -105,7 +114,7 @@ Each appliance type contains:
 Estimates appliance energy consumption from minimal inputs.
 
 **Methods:**
-- `estimate({required ApplianceInfo type, String? brandName, String? modelNumber})`: Returns median annual energy usage in kWh/year
+- `estimate({required ApplianceInfo type, String? brandName, String? modelNumber, Strategy strategy = Strategy.median})`: Returns aggregated annual energy usage in kWh/year based on the chosen strategy (median or mean)
 
 ### EnergyStarService
 Service for interacting with the EnergyStar API.
@@ -134,5 +143,10 @@ Normalized data model for EnergyStar API responses.
 3. **Estimation**: When estimating energy usage, Energeist:
    - Queries the appropriate EnergyStar dataset(s) for the appliance type
    - Filters by brand and/or model if provided
-   - Calculates the median energy consumption from all matching results
+   - Calculates the median or mean energy consumption from all matching results (defaults to median)
    - Returns 0.0 if no matches are found
+
+### Aggregation Strategies
+Energeist supports two aggregation strategies:
+- **Strategy.median** (default): Returns the middle value, less affected by outliers
+- **Strategy.mean**: Returns the average value, useful for understanding typical consumption across all models
