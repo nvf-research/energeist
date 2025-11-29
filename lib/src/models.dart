@@ -31,14 +31,12 @@ class EnergyStarNormalizedData {
   factory EnergyStarNormalizedData.fromJson(Map<String, dynamic> json,
       [String? datasetId]) {
     // Extract common fields with fallback names
-    final brandName = _extractField(json,
-        ['brand_name', 'outdoor_unit_brand_name', 'manufacturer', 'brand']);
-
-    final modelNumber = _extractField(json,
-        ['model_number', 'indoor_unit_model_number', 'model', 'model_name']);
+    final brandName = _extractField<String?>(json, _brandNameFields);
+    final modelNumber = _extractField<String?>(json, _modelNumberFields);
 
     // Extract energy consumption with various field names
-    final energyUse = _extractEnergyField(json);
+    final energyUse =
+        _extractField<double>(json, _energyFields, asDouble: true);
 
     // Find appliance type by checking which type uses this dataset ID
     String? applianceTypeName;
@@ -59,52 +57,64 @@ class EnergyStarNormalizedData {
     );
   }
 
+  /// Field name lists for common data extraction patterns
+  static const _brandNameFields = [
+    'brand_name',
+    'outdoor_unit_brand_name',
+    'manufacturer',
+    'brand'
+  ];
+
+  static const _modelNumberFields = [
+    'model_number',
+    'indoor_unit_model_number',
+    'model',
+    'model_name'
+  ];
+
+  static const _energyFields = [
+    'annual_energy_use_kwh_yr',
+    'annual_energy_consumption_kwh_yr',
+    'annual_energy_use_kwh_year',
+    'energy_use_kwh_year',
+    'annual_energy_consumption',
+    'energy_consumption'
+  ];
+
   /// Extracts a field value from JSON using multiple possible field names.
   ///
   /// Different Energy Star datasets use different field naming conventions.
-  /// This method tries each field name in order and returns the first match.
+  /// This method tries each field name in order and returns the first non-null match,
+  /// with automatic type conversion based on the desired return type.
+  ///
+  /// Type Parameters:
+  /// - [T] - Return type (String?, double, etc.)
   ///
   /// Parameters:
   /// - [json] - JSON object to search
-  /// - [fieldNames] - List of possible field names to try
+  /// - [fieldNames] - List of possible field names to try in order
+  /// - [asDouble] - If true, extracts and converts to double; if false, converts to string (default: false)
   ///
-  /// Returns the field value as a string, or null if not found.
-  static String? _extractField(
-      Map<String, dynamic> json, List<String> fieldNames) {
+  /// Returns:
+  /// - For strings (asDouble=false): First non-null value converted to string, or null if not found
+  /// - For doubles (asDouble=true): First parseable numeric value as double, or 0.0 if not found
+  static T _extractField<T>(
+    Map<String, dynamic> json,
+    List<String> fieldNames, {
+    bool asDouble = false,
+  }) {
     for (final field in fieldNames) {
-      if (json.containsKey(field) && json[field] != null) {
-        return json[field].toString();
-      }
-    }
-    return null;
-  }
+      final value = json[field];
 
-  /// Extracts annual energy consumption from JSON using multiple field names.
-  /// Tries various field name variations and handles both numeric and string values.
-  ///
-  /// Parameters:
-  /// - [json] - JSON object containing energy data
-  ///
-  /// Returns energy consumption in kWh/year, or 0.0 if not found.
-  static double _extractEnergyField(Map<String, dynamic> json) {
-    final energyFields = [
-      'annual_energy_use_kwh_yr',
-      'annual_energy_consumption_kwh_yr',
-      'annual_energy_use_kwh_year',
-      'energy_use_kwh_year',
-      'annual_energy_consumption',
-      'energy_consumption'
-    ];
+      if (value == null) continue;
+      if (!asDouble) return value.toString() as T;
 
-    for (final field in energyFields) {
-      if (json.containsKey(field) && json[field] != null) {
-        final value = json[field];
-        if (value is num)
-          return value.toDouble();
-        else if (value is String) return double.tryParse(value) ?? 0.0;
-      }
+      final numValue = value is num ? value : double.tryParse(value.toString());
+
+      if (numValue != null) return numValue.toDouble() as T;
     }
-    return 0.0;
+
+    return (asDouble ? 0.0 : null) as T;
   }
 
   /// Converts the normalized data back to JSON format.
