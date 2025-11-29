@@ -1,3 +1,9 @@
+/// Strategy for aggregating energy usage values.
+enum Strategy {
+  median, // Calculate the median of energy usage data.
+  mean, // Calculate the mean of energy usage data.
+}
+
 /// Appliance types supported by the subsystem with Energy Star metadata.
 /// Each enum value represents a specific appliance category with associated
 /// Energy Star dataset IDs and field mappings. Used to query the Energy Star

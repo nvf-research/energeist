@@ -122,7 +122,7 @@ class Estimator {
 
   /// Estimates appliance energy usage from Energy Star data.
   /// Queries the Energy Star API for appliances matching the provided criteria
-  /// and returns the median annual energy consumption.
+  /// and returns the aggregated annual energy consumption based on the chosen strategy.
   ///
   /// Search strategy:
   /// - If only [type] provided: searches all appliances of that type
@@ -133,13 +133,15 @@ class Estimator {
   /// - [type] - Appliance type
   /// - [brandName] - Optional brand name (case-insensitive)
   /// - [modelNumber] - Optional model number (case-insensitive)
+  /// - [strategy] - Aggregation strategy (median or mean). Defaults to median.
   ///
-  /// Returns the median annual energy usage in kWh/year.
+  /// Returns the aggregated annual energy usage in kWh/year based on the chosen strategy.
   /// Returns 0.0 if no matching appliances are found.
   Future<double> estimate({
     required ApplianceInfo type,
     String? brandName,
     String? modelNumber,
+    Strategy strategy = Strategy.median,
   }) async {
     // Normalize inputs
     final normalizedBrand =
@@ -158,7 +160,10 @@ class Estimator {
 
     final values = _extractEnergyValues(records);
 
-    return _calculateMedian(values);
+    return switch (strategy) {
+      Strategy.median => _calculateMedian(values),
+      Strategy.mean => _calculateMean(values),
+    };
   }
 
   /// Extracts annual energy usage values from normalized records.
@@ -174,9 +179,6 @@ class Estimator {
   }
 
   /// Calculates the median value from a list of numbers.
-  ///
-  /// Returns the middle value for odd-length lists.
-  /// Returns the average of the two middle values for even-length lists.
   static double _calculateMedian(List<double> values) {
     final sorted = List<double>.from(values)..sort();
     final mid = sorted.length ~/ 2;
@@ -187,8 +189,6 @@ class Estimator {
   }
 
   /// Calculates the arithmetic mean (average) of a list of numbers.
-  ///
-  /// Currently unused but available for alternative estimation strategies.
   static double _calculateMean(List<double> values) {
     final sum = values.reduce((a, b) => a + b);
 
