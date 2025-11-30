@@ -1,6 +1,9 @@
 name: energeist
 description: Energy consumption estimation and tracking system for household appliances using Energy Star data
 version: 0.1.0
+repository: https://github.com/nvf-research/energeist
+homepage: https://github.com/nvf-research/energeist
+issue_tracker: https://github.com/nvf-research/energeist/issues
 
 environment:
   sdk: ^3.0.0
