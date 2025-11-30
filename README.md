@@ -11,6 +11,17 @@ A Dart subsystem for energy consumption estimation and tracking of household app
 
 ## Installation
 Add this to your package's `pubspec.yaml` file:
+
+### Option 1: Use a Specific Version (Recommended)
+```yaml
+dependencies:
+  energeist:
+    git:
+      url: https://github.com/nvf-research/energeist.git
+      ref: v0.1.0
+```
+
+### Option 2: Use Latest from Main Branch
 ```yaml
 dependencies:
   energeist:
