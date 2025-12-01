@@ -1,12 +1,12 @@
 # Energeist
-A Dart subsystem for energy consumption estimation and tracking of household appliances using EnergyStar data. Energeist provides a simple interface to fetch appliance data from the EnergyStar API and estimate energy usage based on appliance type, brand name, and model number.
+A Dart subsystem for energy consumption estimation and tracking of household appliances using Energy Star data. Energeist provides a simple interface to fetch appliance data from the Energy Star API and estimate energy usage based on appliance type, brand name, and model number.
 
 ## Features
-- Query EnergyStar API for appliance energy consumption data
+- Query Energy Star API for appliance energy consumption data
 - Support multiple appliance types
 - Estimate energy usage from minimal inputs (appliance type, brand name, model number)
 - Choose between median or mean aggregation strategies
-- Normalized data model that standardizes various EnergyStar dataset formats
+- Normalized data model that standardizes various Energy Star dataset formats
 - Handles multiple dataset IDs per appliance type
 
 ## Installation
@@ -18,7 +18,7 @@ dependencies:
   energeist:
     git:
       url: https://github.com/nvf-research/energeist.git
-      ref: v0.1.0
+      ref: v0.2.0
 ```
 
 ### Option 2: Use Latest from Main Branch
@@ -73,8 +73,8 @@ void main() async {
 }
 ```
 
-### Advanced: Direct EnergyStar API Queries
-For more control, use the `EnergyStarService` to query the EnergyStar API directly:
+### Advanced: Direct Energy Star API Queries
+For more control, use the `EnergyStarService` to query the Energy Star API directly:
 
 ```dart
 import 'package:energeist/energeist.dart';
@@ -83,7 +83,7 @@ void main() async {
   final service = EnergyStarService();
 
   // Search for all Lynx refrigerators
-  final results = await service.searchByDatasetIds(
+  final results = await service.fetchAppliances(
     datasetIds: ApplianceInfo.refrigerator.datasetIds,
     brandName: 'Lynx',
   );
@@ -117,7 +117,7 @@ ApplianceInfo.electricCookingProduct
 
 Each appliance type contains:
 - `displayName`: Human-readable, appliance name
-- `datasetIds`: EnergyStar dataset IDs to query
+- `datasetIds`: Energy Star dataset IDs to query
 - `energyStarFieldNames`: Expected field names in API responses
 
 ## API Reference
@@ -128,31 +128,31 @@ Estimates appliance energy consumption from minimal inputs.
 - `estimate({required ApplianceInfo type, String? brandName, String? modelNumber, Strategy strategy = Strategy.median})`: Returns aggregated annual energy usage in kWh/year based on the chosen strategy (median or mean)
 
 ### EnergyStarService
-Service for interacting with the EnergyStar API.
+Service for interacting with the Energy Star API.
 
 **Methods:**
-- `searchByDatasetIds({required Set<String> datasetIds, String? brandName, String? modelNumber, Map<String, String>? additionalFilters})`: Returns a list of normalized appliance data
+- `fetchAppliances({required Set<String> datasetIds, String? brandName, String? modelNumber})`: Returns a list of normalized appliance data fetched in parallel from the Energy Star datasets.
 
 ### EnergyStarNormalizedData
-Normalized data model for EnergyStar API responses.
+Normalized data model for Energy Star API responses.
 
 **Properties:**
 - `brandName`: Brand name of the appliance
 - `modelNumber`: Model number
 - `annualEnergyUseKwhPerYear`: Annual energy consumption
-- `datasetId`: EnergyStar dataset ID
+- `datasetId`: Energy Star dataset ID
 - `applianceType`: Type of appliance
 - `additionalFields`: Raw API response data
 
 **Methods:**
-- `fromJson(Map<String, dynamic> json, [String? datasetId])`: Converts raw EnergyStar API responses into a standardized format
+- `fromJson(Map<String, dynamic> json, [String? datasetId])`: Converts raw Energy Star API responses into a standardized format
 - `toJson()`: Converts the normalized object back to JSON format
 
 ## How It Works
-1. **Data Source**: Energeist queries the EnergyStar public API, which contains certified appliance data
-2. **Normalization**: Different EnergyStar datasets use different field names. Energeist normalizes these into a consistent format
+1. **Data Source**: Energeist queries the Energy Star public API, which contains certified appliance data
+2. **Normalization**: Different Energy Star datasets use different field names. Energeist normalizes these into a consistent format
 3. **Estimation**: When estimating energy usage, Energeist:
-   - Queries the appropriate EnergyStar dataset(s) for the appliance type
+   - Queries the appropriate Energy Star dataset(s) for the appliance type
    - Filters by brand and/or model if provided
    - Calculates the median or mean energy consumption from all matching results (defaults to median)
    - Returns 0.0 if no matches are found
